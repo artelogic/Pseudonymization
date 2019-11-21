@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "Pseudonymizer";
+}
+
+<div id="wrapper">
+    <div class="container-fluid" id="content-wrapper" style="padding-bottom: 1rem">
+        <div class="card mb-4 rounded-0 shadow">
+            <div class="card-header" style="padding: 1em;">
+                <div class="connection-input-container">
+                    <input type="text"
+                           data-bind="value: connectionStringInput"
+                           class="form-text"
+                           id="connection-input"
+                           placeholder="Connection String" />
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-9">
+                        <span>Specify Connection String to the Database</span>
+                    </div>
+                    <div class="col-3">
+                        <button class="btn btn-primary float-right" id="process-btn" data-bind="click: onProcessBtnClicked">Proceed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ko with: ProgressBar -->
+        <div class="progress mb-4">
+            <div class="progress-bar"
+                 role="progressbar"
+                 data-bind="style: {'width': progress() + '%', 'background-color': state().Color }, attr: {'aria-valuenow': progress() }"
+                 aria-valuemin="0"
+                 aria-valuemax="100"></div>
+        </div>
+        <!-- /ko -->
+
+        <div class="card mb-4">
+            <div class="card-header">
+                Results
+            </div>
+            <div class="card-body" data-bind="foreach: tables">
+                <div class="card mb-4 inner-card">
+                    <div class="card-header">
+                        <div class="custom-control custom-checkbox small">
+                            <input type="checkbox" class="custom-control-input" data-bind="checked: IsIncluded, attr: { 'id': 'chbx' + DisplayName() }">
+                            <label class="custom-control-label" data-bind="attr: { 'for': 'chbx' + DisplayName() }"></label>
+                        </div>
+                        <span data-bind="text: DisplayName"></span>
+                    </div>
+                    <div class="card-body" data-bind="foreach: $data.Columns">
+                        <div class="column-list-container">
+                            <div class="custom-control custom-checkbox small">
+                                <input type="checkbox" class="custom-control-input" data-bind="checked: IsIncluded, attr: { 'id': 'chbx' + $parent.DisplayName() + '.' + $data.ColumnName() }">
+                                <label class="custom-control-label" data-bind="attr: { 'for': 'chbx' + $parent.DisplayName() + '.' + $data.ColumnName() }"></label>
+                            </div>
+                            <span data-bind="text: ColumnName" class="column-name"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bottom-menu">
+            <button class="btn btn-primary float-right" data-bind="click: onPseudonymizeBtnClicked">Pseudonymise</button>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/Custom/entities.js"></script>
+<script src="~/Scripts/Custom/view-model.js"></script>
+<script src="~/Scripts/Custom/client.js"></script>
+
+<!-- Error mode=al -->
+<div class="modal fade" id="err-window">
+    <div class="modal-dialog">
+        <!-- ko with: messageBox -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" data-bind="text: title"></h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" data-bind="text: message">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Ok</button>
+            </div>
+        </div>
+        <!-- /ko -->
+    </div>
+</div>
+
+<!-- notifications! -->
+<div id="notifications" data-bind="foreach: notificationHub.NotificationStack">
+    <div class="toast" role="alert" data-autohide="true" data-delay="3000" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="mr-auto" data-bind="text: Title, class: 'text-' + Type"></strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="toast-body" data-bind="text: Message"></div>
+    </div>
+</div>
+
+
+<script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
+<script src="~/signalr/hubs"></script>
+<script>
+    $(document).on('hidden.bs.toast', '.toast', function (event) {
+        ko.dataFor(this).Active = false;
+    });
+
+    var NotificationTypes = {
+        Error: 'danger',
+        Info: 'primary',
+        Success: 'success'
+    };
+
+    ko.applyBindings(vm);
+</script>
